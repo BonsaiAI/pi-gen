@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  # Run jobs on push to master or feature branches
+  push:
+    branches:
+      - master
+      - feature-*
+
+  # Run tests for any PRs.
+  pull_request:
+
+env:
+  IMAGE_NAME: pi-gen
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Checkout submodules
+        uses: textbook/git-checkout-submodule-action@master
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: crazy-max/ghaction-docker-buildx@v1
+        with:
+          buildx-version: latest
+          qemu-version: latest
+      
+      # Cross-build for linux/arm/v7
+      - name: Build
+        run: |
+          ./build-docker.sh
