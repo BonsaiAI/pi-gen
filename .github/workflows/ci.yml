@@ -7,14 +7,14 @@ on:
       - master
       - feature-*
 
-  # Run tests for any PRs.
+  # Run any PRs.
   pull_request:
 
 env:
   IMAGE_NAME: pi-gen
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,7 +30,11 @@ jobs:
           buildx-version: latest
           qemu-version: latest
       
-      # Cross-build for linux/arm/v7
       - name: Build
         run: |
           ./build-docker.sh
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: deploy/*
