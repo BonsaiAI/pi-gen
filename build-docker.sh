@@ -5,6 +5,11 @@ BUILD_OPTS="$*"
 
 DOCKER="docker"
 
+# Ensure that any config variables we passed in are written to an env_file
+# so invocations in subsquent shells preserve these values
+# Add || true so passing no custom vars doesn't bork up execution
+printenv | grep -e FWVERSION -e SERIAL -e ROOTUSER -e ROOTUSERPASS || true > "$DIR/.customvars"
+
 if ! ${DOCKER} ps >/dev/null 2>&1; then
 	DOCKER="sudo docker"
 fi
@@ -79,6 +84,7 @@ if [ "${CONTAINER_EXISTS}" != "" ]; then
 	time ${DOCKER} run --rm --privileged \
 		--volume "${CONFIG_FILE}":/config:ro \
 		-e "GIT_HASH=${GIT_HASH}" \
+		--env-file=${DIR}/.customvars \
 		--volumes-from="${CONTAINER_NAME}" --name "${CONTAINER_NAME}_cont" \
 		pi-gen \
 		bash -e -o pipefail -c "dpkg-reconfigure qemu-user-static &&
@@ -90,6 +96,7 @@ else
 	time ${DOCKER} run --name "${CONTAINER_NAME}" --privileged \
 		--volume "${CONFIG_FILE}":/config:ro \
 		-e "GIT_HASH=${GIT_HASH}" \
+		--env-file=${DIR}/.customvars \
 		pi-gen \
 		bash -e -o pipefail -c "dpkg-reconfigure qemu-user-static &&
 	cd /pi-gen; ./build.sh ${BUILD_OPTS} &&
